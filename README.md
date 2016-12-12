@@ -1,2 +1,3 @@
-# compstat2016
-Repo de Estadistica Computacional
+# Estadistica Computacional
+En este repo se encuentran las tareas
+ 
