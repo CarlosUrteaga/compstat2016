@@ -46,7 +46,49 @@ dashboardPage(
                 ),
                 tabPanel( "Ejemplo",
                           fluidRow(
-                            ##aqui va el shiny
+                            box(title = "Simulación", "Números a simular",
+                                sliderInput("nsims","",
+                                            min = 20, max = 1000,
+                                            value = 50)
+                                ),
+                            box(title = "Parámetro", "",
+                                numericInput("lambda",
+                                             "lambda:",
+                                             value = 1,step=.1),
+                                numericInput("nbin",
+                                             "nbin:",
+                                             value = 10,step=1)                               
+                                # sliderInput("nbin","Número de elementos en el histograma",
+                                #             min = 20, max = 1000,
+                                #             value = 50)   
+                            ) 
+                          ),
+                          # ,
+                          # box(title = "Box title", "Box content",
+                              
+                          h3("Pruebas de bondad de ajuste"),
+                          #h5("Kolmogorov-Smirnov y Chi-Square Test"),
+                          fluidRow(column(5, verbatimTextOutput("ksTest")),
+                                   column(5, verbatimTextOutput("chiTest"))
+                          ),
+                          
+                          
+                          sidebarLayout(
+                            sidebarPanel(
+                              fluidRow(radioButtons("radioBtn", "Tipo de distribución:",
+                                                    c("Uniforme (GCL)"         = "UNIF",
+                                                      "Exponencial (Fnc-Inv)"  = "EXP",
+                                                      "Normal (Box-Müller)"    = "NORM",
+                                                      "Geometrica"             = "GEOM")))
+                            ),
+                            
+                            mainPanel(
+                              tabsetPanel(
+                                tabPanel("histograma", plotOutput("hist")),
+                                tabPanel("qqPlot",     plotOutput("qqPlot"))
+                              ),
+                              verbatimTextOutput("stats")
+                            )
                           )
                           )
                 )
