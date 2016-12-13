@@ -19,7 +19,7 @@ dashboardPage(
       menuItem("Números aleatorios", tabName = "random", icon = icon("black-tie")),
       menuItem("Integracion via Monte Carlo", tabName = "montecarlo", icon = icon("magic")),
       menuItem("MCMC", tabName = "MCMC", icon = icon("line-chart")),
-      menuItem("Paradoja de Cumpleaños", tabName = "birthdayparadox", icon = icon("birthday-cake"))
+      menuItem("Extras", tabName = "extras", icon = icon("gift"))
       
       #menuItem("About", tabName = "about", icon = icon("user"))
     )
@@ -96,21 +96,21 @@ dashboardPage(
                            #includeMarkdown("md/teo02.md")
                          )
                 ),
-                tabPanel("Parte 04",
+                tabPanel("Tarea 04",
                          box(
                            withMathJax(),
                            width = 15,
                            includeMarkdown("md/hw04.md")
                          )
                 ),
-                tabPanel("Parte 05",
+                tabPanel("Tarea 05",
                          box(
                            withMathJax(),
                            width = 15,
                            includeMarkdown("md/hw05.md")
                          )
                 ),
-                tabPanel("Parte 06",
+                tabPanel("Tarea 06",
                          box(
                            withMathJax(),
                            width = 15,
@@ -120,54 +120,28 @@ dashboardPage(
               )
       ),## fin slide menu
       
-      # tabName = "random",
-      # h2("Tarea 01"),
-      # tabsetPanel(
-      #   tabPanel( "Método de la Función Inversa",
-      tabItem(tabName = "birthdayparadox",
-              h2("Paradoja del cumpleaños"),
+      tabItem(tabName = "extras",
+              h2("Extras"), 
               tabsetPanel(
-                tabPanel( "Método de la Función Inversa",
-                h3("¿Cuál es la probabilidad de que dos personas en una fiesta cumplan años el mismo dia?"),
+                tabPanel( "Método de la Función Inversa", icon = icon("asterisk"),
                 fluidRow(
-                  box(
-                   title =  "# de Personas en la fiesta",
-                   width = 10,
-                   numericInput(inputId = "personascumpleanos",
-                                 label = "¿Cuantas personas hay en la fiesta?",
-                                value = 10
-                   ),
-                   verbatimTextOutput("probabilidad_cumpleanos")
-                 )
-               ) ),
-               tabPanel("Teoría",
-                        box(
-                          withMathJax(),
-                          width = 15,
-                          includeMarkdown("md/paradox02.md")
-                        )
-               )
-                
-        )),
-      #===== elemento menu (3)
-      tabItem(tabName = "Extras",
-              h2("Tareas extras"),
-              tabsetPanel(
-                tabPanel( "Método de la Función Inversa",
-                          h3(""),
-                          fluidRow(
-                            box(
-                            )
-                          ) ),
-                tabPanel("Teoría",
+                  
+               
+               )),
+               tabPanel( "Paradoja del cumpleaños",icon = icon("birthday-cake"),
+                         h3("¿Cuál es la probabilidad de que dos personas en una fiesta cumplan años el mismo dia?"),
+                         fluidRow(
+                           # box(
+                           # )
+                         ),
+                         
                          box(
                            withMathJax(),
                            width = 15,
                            includeMarkdown("md/paradox02.md")
-                         )
-                )
-                
-              ))
+                         ))
+               
+        ))
     )
   )
 )

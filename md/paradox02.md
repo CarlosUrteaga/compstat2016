@@ -1,3 +1,4 @@
+# Teoría
 El problema consiste en encontrar cual es la probabilidad de que en un salón se tengan dos personas que cumplan el mismo día [1], para eso se calcula primero al probabilidad de que el los cumpleaños sean diferentes. La probabilidad de que ninguan persona cumpla el mismo día es 
 
 $$
