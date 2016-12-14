@@ -119,5 +119,16 @@ shinyServer(function(input, output) {
 
     
   })
-  
+  output$downloadData <- downloadHandler(
+    filename = function() { paste(input$radioBtn, '.csv', sep='') },
+    content = function(file) {
+      write.csv(data(), file)
+    }
+  )
 })
+# funciones auxiliares
+LCG <- function(nsim, M = 2^32, a = 22695477, c = 1, seed = 110104){
+  X = c(seed, numeric(nsim-1)) # Aparta memoria
+  for(i in 1:(nsim-1)) X[i+1] <- ((a*X[i] + c)%% M) # Aplica GenradorCongruenciaLineal
+  return(X/M) # Aplica transformacion
+}

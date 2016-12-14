@@ -46,18 +46,20 @@ dashboardPage(
                 ),
                 tabPanel( "Ejemplo",
                           fluidRow(
-                            box(title = "Simulación", "Números a simular",
-                                sliderInput("nsims","",
+                            box(title = "Parámetros", "",
+                                sliderInput("nsims","Números a simular",
                                             min = 20, max = 1000,
                                             value = 50)
                                 ),
-                            box(title = "Parámetro", "",
+                            box(title = "Parámetros", "",
                                 numericInput("lambda",
                                              "lambda:",
                                              value = 1,step=.1),
                                 numericInput("nbin",
                                              "nbin:",
-                                             value = 10,step=1)                               
+                                             value = 10,step=1),
+                                downloadButton("downloadData", "Descargar")
+                                
                                 # sliderInput("nbin","Número de elementos en el histograma",
                                 #             min = 20, max = 1000,
                                 #             value = 50)   
