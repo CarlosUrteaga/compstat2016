@@ -4,8 +4,9 @@ library(shiny)
 library(shinydashboard)
 library(ggplot2)
 library(Rcpp)
+library(DT)
 
-
+data4 <- read.csv(file="cheese.csv", header=T)
 dashboardPage(
   dashboardHeader(
     title = "Estad??stica computacional",
@@ -170,11 +171,67 @@ dashboardPage(
                          )
                 ),
                 tabPanel("Tarea 04",
-                         box(
-                           withMathJax(),
-                           width = 15,
-                           includeMarkdown("md/hw04.md")
+                         sidebarLayout(
+                           sidebarPanel(
+                             checkboxGroupInput("cVariables", h3("Variables"),
+                                                choices = names(data4)),
+                             h4("Parametros aPriori"),
+                             sliderInput("s_a", "a -> Unif ", min=1, max=10, value=c(5,8)),
+                             sliderInput("s_b", "b <- Norm", min=1, max=10, value=5),
+                             sliderInput("s_sigma", "sigma -> Unif", min=1, max=10, value=c(5, 6))
+                           ),
+                           
+                           mainPanel(
+                             tabsetPanel(type = "tabs", 
+                                         tabPanel("datos",
+                                                  fluidRow(
+                                                    column(8, plotOutput("plot_data")),
+                                                    column(12, DT::dataTableOutput("table"))
+                                                  ) 
+                                         ),
+                                         tabPanel("distribuciones aPriori",
+                                                  fluidRow(
+                                                    column(4, plotOutput("plot_hist_A")),
+                                                    column(4, plotOutput("plot_hist_B")),
+                                                    column(4, plotOutput("plot_hist_Sd")),
+                                                    column(4, plotOutput("plot_hist_Total"))
+                                                  )
+                                         )
+                             )
+                           )
                          )
+                         # box(
+                         #   column(1,checkboxGroupInput("cVariables", h3("Variables"),
+                         #                               choices = names(data4)))
+                         # ),
+                         # box(
+                         #   
+                         #   sliderInput("s_a", "a -> Unif ", min=1, max=10, value=c(5,8)),
+                         #   sliderInput("s_b", "b <- Norm", min=1, max=10, value=5),
+                         #   sliderInput("s_sigma", "sigma -> Unif", min=1, max=10, value=c(5, 6)),
+                         #   withMathJax(),
+                         #   #width = 15,
+                         #   includeMarkdown("md/hw04.md")
+                         # ),
+                         # box(
+                         #   
+                         #   tabsetPanel(type = "tabs", 
+                         #               tabPanel("datos",
+                         #                        fluidRow(
+                         #                          column(8, plotOutput("plot_data")),
+                         #                          column(12, DT::dataTableOutput("table"))
+                         #                        ) 
+                         #               ),
+                         #               tabPanel("distribuciones aPriori",
+                         #                        fluidRow(
+                         #                          column(4, plotOutput("plot_hist_A")),
+                         #                          column(4, plotOutput("plot_hist_B")),
+                         #                          column(4, plotOutput("plot_hist_Sd")),
+                         #                          column(4, plotOutput("plot_hist_Total"))
+                         #                        )
+                         #               )
+                         #   )
+                         # )
                 ),
                 tabPanel("Tarea 05",
                          box(

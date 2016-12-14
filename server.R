@@ -9,6 +9,9 @@
 
 library(shiny)
 
+data4 <- read.csv(file="cheese.csv", header=T)
+
+n <- dim(data)[1]
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
   data <- reactive({
@@ -182,6 +185,64 @@ shinyServer(function(input, output) {
     aux <- mcIntervals(input$n, input$lmts[1], input$lmts[2], fun=fun1, alfa=input$alfa)
     aux
   })
+  ## la gacha
+  data4 <- read.csv(file="cheese.csv", header=T)
+  
+    n <- dim(data4)[1]
+    
+    dataInput <- reactive({
+      if(is.null(input$cVariables))
+        return()
+      aux <- data4[, input$cVariables]
+      aux
+    })
+    
+    priori_a <- reactive({
+      runif(n, min=input$s_a[1], max = input$s_a[2])
+    })
+    priori_b <- reactive({
+      rnorm(n, mean=0, sd = input$s_b)
+    })
+    priori_sd <- reactive({
+      runif(n, min=input$s_sigma[1], max = input$s_sigma[2])
+    })
+    
+    nmes <- renderText({
+      input$cVariables
+    })
+    
+    output$table <- DT::renderDataTable(DT::datatable({
+      if(is.null(input$cVariables))
+        return()
+      else 
+        return(dataInput())
+      
+    }))
+    
+    output$plot_data4 <- renderPlot({
+      if(is.null(input$cVariables))
+        return()
+      else{
+        return(plot(dataInput(), main="Grafica de dispersion"))
+      }
+    })
+    
+    output$plot_hist_A <- renderPlot({
+      hist(priori_a())
+    })
+    
+    output$plot_hist_B <- renderPlot({
+      hist(priori_b())
+    })
+    
+    output$plot_hist_Sd <- renderPlot({
+      hist(priori_sd())
+    })
+    
+    output$plot_hist_Total <- renderPlot({
+      hist(priori_a() * priori_b() * priori_sd(), main="distribucin a priori")
+    })
+
 })
 # funciones auxiliares
 LCG <- function(nsim, M = 2^32, a = 22695477, c = 1, seed = 110104){
