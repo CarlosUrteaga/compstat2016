@@ -8,7 +8,7 @@ library(Rcpp)
 
 dashboardPage(
   dashboardHeader(
-    title = "Estadística computacional",
+    title = "Estad??stica computacional",
     #    title = tags$a(href='http://mycompanyishere.com',
     #                   tags$img(src='logo_itam_70.png')),
     titleWidth = "900px"
@@ -16,7 +16,7 @@ dashboardPage(
   skin = "green",
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Números aleatorios", tabName = "random", icon = icon("black-tie")),
+      menuItem("N??meros aleatorios", tabName = "random", icon = icon("black-tie")),
       menuItem("Integracion via Monte Carlo", tabName = "montecarlo", icon = icon("magic")),
       menuItem("MCMC", tabName = "MCMC", icon = icon("line-chart")),
       menuItem("Extras", tabName = "extras", icon = icon("gift"))
@@ -37,7 +37,7 @@ dashboardPage(
                            includeMarkdown("md/hw01.md")
                          )
                 ),
-                tabPanel("Teoría",
+                tabPanel("Teoria",
                          box(
                            withMathJax(),
                            width = 15,
@@ -46,12 +46,12 @@ dashboardPage(
                 ),
                 tabPanel( "Ejemplo",
                           fluidRow(
-                            box(title = "Parámetros", "",
-                                sliderInput("nsims","Números a simular",
+                            box(title = "Parametros", "",
+                                sliderInput("nsims","Numeros a simular",
                                             min = 20, max = 1000,
                                             value = 50)
                                 ),
-                            box(title = "Parámetros", "",
+                            box(title = "Parametros", "",
                                 numericInput("lambda",
                                              "lambda:",
                                              value = 1,step=.1),
@@ -60,7 +60,7 @@ dashboardPage(
                                              value = 10,step=1),
                                 downloadButton("downloadData", "Descargar")
                                 
-                                # sliderInput("nbin","Número de elementos en el histograma",
+                                # sliderInput("nbin","N??mero de elementos en el histograma",
                                 #             min = 20, max = 1000,
                                 #             value = 50)   
                             ) 
@@ -77,10 +77,10 @@ dashboardPage(
                           
                           sidebarLayout(
                             sidebarPanel(
-                              fluidRow(radioButtons("radioBtn", "Tipo de distribución:",
+                              fluidRow(radioButtons("radioBtn", "Tipo de distribuci??n:",
                                                     c("Uniforme (GCL)"         = "UNIF",
                                                       "Exponencial (Fnc-Inv)"  = "EXP",
-                                                      "Normal (Box-Müller)"    = "NORM",
+                                                      "Normal (Box-M??ller)"    = "NORM",
                                                       "Geometrica"             = "GEOM")))
                             ),
                             
@@ -106,7 +106,7 @@ dashboardPage(
                              includeMarkdown("md/hw02.md")
                            )
                   ),
-                  tabPanel("Teoría",
+                  tabPanel("Teoriaa",
                            box(
                              withMathJax(),
                              width = 15,
@@ -116,6 +116,35 @@ dashboardPage(
                   tabPanel( "Ejemplo",
                             fluidRow(
                               ##aqui va el shiny
+                              fluidRow(
+                                box(title = "Parametros", "",
+                                    textInput(inputId="inpFunc", label="Funcion a evaluar",
+                                              value="function (x) {4/(1+x^2)}"),
+                                    
+                                    sliderInput(inputId = "lmts", label="Limites de la integral",
+                                                max=10, min=0, value=c(0,1)),
+                                    
+                                    sliderInput(inputId = "alfa", label="Intervalo de confianza",
+                                                max=0.1, min=0.01, value=0.05, step=0.01),
+                                    
+                                    sliderInput("n", 
+                                                "Numero de puntos aleatorios:", 
+                                                value = 100,
+                                                min = 2, 
+                                                max = 1000)
+                                ),
+                                box(title = "Par??metros", "",
+                                    tabsetPanel(type = "tabs", 
+                                                tabPanel("Mont eCarlo", plotOutput("plot")), 
+                                                tabPanel("Intervalos", plotOutput("intervals")),
+                                                tabPanel("Trapecio vs MC", dataTableOutput("comparation"))
+                                    )
+                                    
+                                    # sliderInput("nbin","N??mero de elementos en el histograma",
+                                    #             min = 20, max = 1000,
+                                    #             value = 50)   
+                                ) 
+                              )
                               )
                   )
                 )
@@ -167,13 +196,13 @@ dashboardPage(
       tabItem(tabName = "extras",
               h2("Extras"), 
               tabsetPanel(
-                tabPanel( "Método de la Función Inversa", icon = icon("asterisk"),
+                tabPanel( "M??todo de la Funci??n Inversa", icon = icon("asterisk"),
                 fluidRow(
                   
                
                )),
-               tabPanel( "Paradoja del cumpleaños",icon = icon("birthday-cake"),
-                         h3("¿Cuál es la probabilidad de que dos personas en una fiesta cumplan años el mismo dia?"),
+               tabPanel( "Paradoja del cumplea??os",icon = icon("birthday-cake"),
+                         h3("??Cu??l es la probabilidad de que dos personas en una fiesta cumplan a??os el mismo dia?"),
                          fluidRow(
                            # box(
                            # )
