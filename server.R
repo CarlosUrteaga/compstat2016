@@ -14,7 +14,7 @@ Taste <- data4$taste
 data5 <- data4[, !names(data4) %in% c("id","taste")]
 
 Rcpp::sourceCpp("markovsin.cpp")
-n <- dim(data)[1]
+n1 <- dim(data)[1]
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
   data <- reactive({
@@ -191,7 +191,7 @@ shinyServer(function(input, output) {
   ## la gacha
   #data4 <- read.csv(file="cheese.csv", header=T)
   
-    n <- dim(data4)[1]
+    n4 <- dim(data4)[1]
     
     dataInput4 <- reactive({
       if(is.null(input$cVariables4))
@@ -200,13 +200,13 @@ shinyServer(function(input, output) {
     })
     
     priori_a4 <- reactive({
-      runif(n, min=input$s_a4[1], max = input$s_a4[2])
+      runif(n4, min=input$s_a4[1], max = input$s_a4[2])
     })
     priori_b4 <- reactive({
-      rnorm(n, mean=0, sd = input$s_b4)
+      rnorm(n4, mean=0, sd = input$s_b4)
     })
     priori_sd4 <- reactive({
-      runif(n, min=input$s_sigma4[1], max = input$s_sigma4[2])
+      runif(n4, min=input$s_sigma4[1], max = input$s_sigma4[2])
     })
     
     nmes <- renderText({
@@ -246,29 +246,27 @@ shinyServer(function(input, output) {
       hist(priori_a4() * priori_b4() * priori_sd4(), main="distribucion a priori")
     })
     ## mega horrible
+    
+    
+    ##########################################################
+    ############---Regresion Bayesiana: MCMC---##############
+    n5 <- dim(data5)[1]
     resultado <- {}
     ############################################################
-    #datos de entrada
-    dataInput5 <- reactive({
-      if(is.null(input$cVariables4))
-        return()
-      aux <- cbind(Taste, data[, input$cVariables4])
-      aux
-    })
-    
-    dataInpu6t <- reactive({
+    ####################--datos de entrada--##############################
+    dataInput <- reactive({
       if(is.null(input$cVariables))
         return()
       aux <- cbind(Taste, data5[, input$cVariables])
       aux
     })
     
-
-    #grafica de entrada
+    ############################################################
+    ####################--grafica de entrada--#########################
     output$table <- DT::renderDataTable(DT::datatable({
       if(is.null(input$cVariables))
         return()
-      else 
+      else
         return(dataInput())
       
     }))
@@ -277,31 +275,27 @@ shinyServer(function(input, output) {
       if(is.null(input$cVariables))
         return()
       else{
-        # aux1 <- dataInput()[,1]
-        # aux2 <- dataInput()[,2]
         return(plot(dataInput(), main="Grafica de dispersion para quesos"))
       }
     })
     
-    
-    #Variables aPriori
     output$plot_hist_A <- renderPlot({
-      priori_a <- runif(n, min=input$s_a[1], max = input$s_a[2])
+      priori_a <- runif(n5, min=input$s_a[1], max = input$s_a[2])
       hist(priori_a)
     })
     
     output$plot_hist_B <- renderPlot({
-      priori_b <- rnorm(n, mean=0, sd = input$s_b)
+      priori_b <- rnorm(n5, mean=0, sd = input$s_b)
       hist(priori_b)
     })
     
     output$plot_hist_Sd <- renderPlot({
-      priori_sd <- runif(n, min=input$s_sigma[1], max = input$s_sigma[2])
+      priori_sd <- runif(n5, min=input$s_sigma[1], max = input$s_sigma[2])
       hist(priori_sd)
     })
     
-
-    #mcmc
+    ############################################################
+    ####################--MCMC--##############################
     chain <- reactive({
       if(is.null(input$cVariables))
         return()
@@ -309,8 +303,6 @@ shinyServer(function(input, output) {
         theta0 <- c(1,1,1)
         temp <- dataInput()
         chain <- runMCMC(x=data5[, input$cVariables[1]], y=Taste, startValue=theta0, iterations=input$sLongitud)
-        #chain <- data.frame(a=chain[,1], b=chain[,2], sd = chain[,3])
-        #chain <- aux1
         return(data.frame(a=chain[,1], b=chain[,2], sd=chain[,3]))
       }
     })
@@ -335,22 +327,27 @@ shinyServer(function(input, output) {
     output$gPriori <- renderPlot({
       #aux <- runMCMC(x, y, theta0, 10000)
       hist(chain()[,1], title=paste("MCMC"))
-    }) 
+    })
     
-    ############MCMC boton
-    df <- eventReactive(input$button, {
+    ####################################################
+    ############---Calcula MCMC con botòn---################
+    df <- eventReactive(input$button, {              #dataframe with multiple chains
       if(is.null(input$cVariables))
         return()
       else{
         theta0 <- c(1,1,1)
         temp <- dataInput()
         chain <- runMCMC(x=temp[,2], y=Taste, startValue=theta0, iterations=input$sLongitud)
+        chain <- chain[-(1:input$sBurnin),]
         chain <- data.frame(a=chain[,1], b=chain[,2], sd=chain[,3])
-        for (i in 1:input$nCadenas-1){
-          aux <- theta0 + round(10*runif(1))
-          aux2 <- runMCMC(x=temp[,2], y=Taste, startValue=aux, iterations=input$sLongitud)
-          aux2 <- data.frame(a=aux2[,1], b=aux2[,2], sd=aux2[,3])
-          chain <- cbind(chain, aux2)
+        if(input$nCadenas > 1){
+          for (i in 2:input$nCadenas){
+            aux <- theta0 + round(10*runif(1))
+            aux2 <- runMCMC(x=temp[,2], y=Taste, startValue=aux, iterations=input$sLongitud)
+            aux2 <- aux2[-(1:input$sBurnin),]
+            aux2 <- data.frame(a=aux2[,1], b=aux2[,2], sd=aux2[,3])
+            chain <- cbind(chain, aux2)
+          }
         }
         return(chain)
       }
@@ -360,16 +357,17 @@ shinyServer(function(input, output) {
     output$cadenasMCMC <- DT::renderDataTable(DT::datatable({
       if(is.null(df()))
         return()
-      else 
+      else
         return(df())
     }))
     
     
+    ##############################################################################
     output$hist_posteriori_A <- renderPlot({
       if(is.null(df()))
         return()
       else{
-        return({AA = mean(df()[-(1:input$sBurnin),1])
+        return({AA = mean(df()[,1])
         hist(df()[,1], main=paste("Posterior A: ", AA))
         abline(v=AA, col="red")
         })
@@ -379,7 +377,7 @@ shinyServer(function(input, output) {
       if(is.null(df()))
         return()
       else{
-        return({BB = mean(df()[-(1:input$sBurnin),2])
+        return({BB = mean(df()[,2])
         hist(df()[,2], main=paste("Posterior B: ", BB))
         abline(v=BB, col="red")
         })
@@ -389,7 +387,7 @@ shinyServer(function(input, output) {
       if(is.null(df()))
         return()
       else{
-        return({Ssd = mean(df()[-(1:input$sBurnin),3])
+        return({Ssd = mean(df()[,3])
         hist(df()[,3], main=paste("Posterior A: ", Ssd))
         abline(v=Ssd, col="red")
         })
@@ -427,28 +425,80 @@ shinyServer(function(input, output) {
       }
     })
     
+    output$plot_hist_Afinal <- renderPlot({
+      if(is.null(df()))
+        return()
+      else{
+        return({AA = mean(df()[-(1:input$sBurnin),1])
+        h <- hist(df()[,1], plot=F, breaks=10)
+        d <- density(df()[,1])
+        hist(df()[,1], main=paste("Posterior A: ", AA),  breaks=10)
+        abline(v=AA, col="red")
+        lines(x=d$x, y=d$y*length(df()[,1])*diff(h$breaks)[1], ldw=2)
+        })
+      }
+    })
+    output$plot_hist_Bfinal <- renderPlot({
+      if(is.null(df()))
+        return()
+      else{
+        return({
+          BB = mean(df()[-(1:input$sBurnin),2])
+          
+          h <- hist(df()[,2], plot=F, breaks=10)
+          d <- density(df()[,2])
+          hist(df()[,2], main=paste("Posterior B: ", BB),  breaks=10)
+          abline(v=BB, col="red")
+          lines(x=d$x, y=d$y*length(df()[,2])*diff(h$breaks)[1], ldw=2)
+        })
+      }
+    })
+    output$plot_hist_Sdfinal <- renderPlot({
+      if(is.null(df()))
+        return()
+      else{
+        return({Ssd = mean(df()[-(1:input$sBurnin),3])
+        h <- hist(df()[,3], plot=F, breaks=10)
+        d <- density(df()[,3])
+        hist(df()[,3], main=paste("Posterior sd: ", Ssd),  breaks=10)
+        abline(v=Ssd, col="red")
+        lines(x=d$x, y=d$y*length(df()[,3])*diff(h$breaks)[1], ldw=2)
+        })
+      }
+    })
+    
     ##############################################################################
     output$regresionCalc <- renderPlot({
       if(is.null(input$cVariables))
         return()
-      else 
+      else
         return({
-          plot(dataInput()[,2], dataInput()[,1])
-          lines(dataInput()[,2], dataInput()[,2]*mean(df()[,1]) + mean(df()[,2]), col="blue") 
+          plot(dataInput()[,2], dataInput()[,1], main="Regresiòn lineal", xlab="Taste", ylab="Acido")
+          lines(dataInput()[,2], dataInput()[,2]*mean(df()[,1]) + mean(df()[,2]), col="blue")
         })
     })
     
+    output$autocorrelacionCalc <- renderPlot({
+      if(is.null(input$cVariables))
+        return()
+      else
+        return({
+          pacf(df()[,1], lag.max = NULL, plot = TRUE, na.action = na.fail, main="Auto-correlación")
+          #acf(df()[,1], lag.max = NULL, type = c("correlation", "covariance", "partial"), plot = TRUE, na.action = na.fail, demean = TRUE)
+        })
+    })
     ##############################################################################
     output$pConvergencia_A <- renderPlot({
       if(is.null(df()))
         return()
       else{
         par(mfrow=(c(1,1)))
-        return({plot(df()[,1], type = "l", main="Parametro A")
-          lines(df()[,4], col="red")
-          lines(df()[,7], col="blue")
-          lines(df()[,10], col="green")
-          lines(df()[,13], col="black")
+        return({plot(df()[,1], type = "l", main="Parametro A", ylab="A", xlab="iteraciones + Burnin")
+          if(input$nCadenas > 1){
+            for(i in 2:input$nCadenas){
+              lines(df()[,i*3-2], col=i)
+            }
+          }
         })
       }
     })
@@ -457,11 +507,12 @@ shinyServer(function(input, output) {
         return()
       else{
         par(mfrow=(c(1,1)))
-        return({plot(df()[,2], type = "l", main="Parametro B")
-          lines(df()[,5], col="red")
-          lines(df()[,8], col="blue")
-          lines(df()[,11], col="green")
-          lines(df()[,14], col="black")
+        return({plot(df()[,2], type = "l", main="Parametro B", ylab="B", xlab="iteraciones + Burnin")
+          if(input$nCadenas > 1){
+            for(i in 2:input$nCadenas){
+              lines(df()[,i*3-1], col=i)
+            }
+          }
         })
       }
     })
@@ -470,15 +521,15 @@ shinyServer(function(input, output) {
         return()
       else{
         par(mfrow=(c(1,1)))
-        return({plot(df()[,3], type = "l", main="Parametro Sd")
-          lines(df()[,6], col="red")
-          lines(df()[,9], col="blue")
-          lines(df()[,12], col="green")
-          lines(df()[,15], col="black")
+        return({plot(df()[,3], type = "l", main="Parametro Sd", ylab="Sd", xlab="iteraciones + Burnin")
+          if(input$nCadenas > 1){
+            for(i in 2:input$nCadenas){
+              lines(df()[,i*3], col=i)
+            }
+          }
         })
       }
     })
-    
 })
 # funciones auxiliares
 LCG <- function(nsim, M = 2^32, a = 22695477, c = 1, seed = 141216){
