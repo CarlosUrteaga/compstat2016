@@ -10,7 +10,10 @@
 library(shiny)
 
 data4 <- read.csv(file="cheese.csv", header=T)
+Taste <- data4$taste
+data5 <- data4[, !names(data4) %in% c("id","taste")]
 
+Rcpp::sourceCpp("markovsin.cpp")
 n <- dim(data)[1]
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
@@ -186,31 +189,82 @@ shinyServer(function(input, output) {
     aux
   })
   ## la gacha
-  data4 <- read.csv(file="cheese.csv", header=T)
+  #data4 <- read.csv(file="cheese.csv", header=T)
   
     n <- dim(data4)[1]
     
-    dataInput <- reactive({
-      if(is.null(input$cVariables))
+    dataInput4 <- reactive({
+      if(is.null(input$cVariables4))
         return()
-      aux <- data4[, input$cVariables]
-      aux
+      data4[, input$cVariables4]
     })
     
-    priori_a <- reactive({
-      runif(n, min=input$s_a[1], max = input$s_a[2])
+    priori_a4 <- reactive({
+      runif(n, min=input$s_a4[1], max = input$s_a4[2])
     })
-    priori_b <- reactive({
-      rnorm(n, mean=0, sd = input$s_b)
+    priori_b4 <- reactive({
+      rnorm(n, mean=0, sd = input$s_b4)
     })
-    priori_sd <- reactive({
-      runif(n, min=input$s_sigma[1], max = input$s_sigma[2])
+    priori_sd4 <- reactive({
+      runif(n, min=input$s_sigma4[1], max = input$s_sigma4[2])
     })
     
     nmes <- renderText({
-      input$cVariables
+      input$cVariables4
+    })
+    #--Variables aPriori
+    
+    output$table4 <- DT::renderDataTable(DT::datatable({
+      if(is.null(input$cVariables4))
+        return()
+      else 
+        return(dataInput4())
+      
+    }))
+    
+    output$plot_data4 <- renderPlot({
+      if(is.null(input$cVariables4))
+        return()
+      else{
+        return(plot(dataInput4(), main="Grafica de dispersion"))
+      }
     })
     
+    output$plot_hist_A4 <- renderPlot({
+      hist(priori_a4())
+    })
+    
+    output$plot_hist_B4 <- renderPlot({
+      hist(priori_b4())
+    })
+    
+    output$plot_hist_Sd4 <- renderPlot({
+      hist(priori_sd4())
+    })
+    
+    output$plot_hist_Total4 <- renderPlot({
+      hist(priori_a4() * priori_b4() * priori_sd4(), main="distribucion a priori")
+    })
+    ## mega horrible
+    resultado <- {}
+    ############################################################
+    #datos de entrada
+    dataInput5 <- reactive({
+      if(is.null(input$cVariables4))
+        return()
+      aux <- cbind(Taste, data[, input$cVariables4])
+      aux
+    })
+    
+    dataInpu6t <- reactive({
+      if(is.null(input$cVariables))
+        return()
+      aux <- cbind(Taste, data5[, input$cVariables])
+      aux
+    })
+    
+
+    #grafica de entrada
     output$table <- DT::renderDataTable(DT::datatable({
       if(is.null(input$cVariables))
         return()
@@ -219,33 +273,215 @@ shinyServer(function(input, output) {
       
     }))
     
-    output$plot_data4 <- renderPlot({
+    output$plot_data <- renderPlot({
       if(is.null(input$cVariables))
         return()
       else{
-        return(plot(dataInput(), main="Grafica de dispersion"))
+        # aux1 <- dataInput()[,1]
+        # aux2 <- dataInput()[,2]
+        return(plot(dataInput(), main="Grafica de dispersion para quesos"))
       }
     })
     
+    
+    #Variables aPriori
     output$plot_hist_A <- renderPlot({
-      hist(priori_a())
+      priori_a <- runif(n, min=input$s_a[1], max = input$s_a[2])
+      hist(priori_a)
     })
     
     output$plot_hist_B <- renderPlot({
-      hist(priori_b())
+      priori_b <- rnorm(n, mean=0, sd = input$s_b)
+      hist(priori_b)
     })
     
     output$plot_hist_Sd <- renderPlot({
-      hist(priori_sd())
+      priori_sd <- runif(n, min=input$s_sigma[1], max = input$s_sigma[2])
+      hist(priori_sd)
     })
     
-    output$plot_hist_Total <- renderPlot({
-      hist(priori_a() * priori_b() * priori_sd(), main="distribucin a priori")
-    })
 
+    #mcmc
+    chain <- reactive({
+      if(is.null(input$cVariables))
+        return()
+      else{
+        theta0 <- c(1,1,1)
+        temp <- dataInput()
+        chain <- runMCMC(x=data5[, input$cVariables[1]], y=Taste, startValue=theta0, iterations=input$sLongitud)
+        #chain <- data.frame(a=chain[,1], b=chain[,2], sd = chain[,3])
+        #chain <- aux1
+        return(data.frame(a=chain[,1], b=chain[,2], sd=chain[,3]))
+      }
+    })
+    
+    output$table <- DT::renderDataTable(DT::datatable({
+      if(is.null(input$cVariables))
+        return()
+      else {
+        return(dataInput())
+      }
+      
+    }))
+    
+    output$Graph1 <- renderPlot({
+      if(is.null(input$cVariables))
+        return()
+      else{
+        return(plot(dataInput()))
+      }
+    })
+    
+    output$gPriori <- renderPlot({
+      #aux <- runMCMC(x, y, theta0, 10000)
+      hist(chain()[,1], title=paste("MCMC"))
+    }) 
+    
+    ############MCMC boton
+    df <- eventReactive(input$button, {
+      if(is.null(input$cVariables))
+        return()
+      else{
+        theta0 <- c(1,1,1)
+        temp <- dataInput()
+        chain <- runMCMC(x=temp[,2], y=Taste, startValue=theta0, iterations=input$sLongitud)
+        chain <- data.frame(a=chain[,1], b=chain[,2], sd=chain[,3])
+        for (i in 1:input$nCadenas-1){
+          aux <- theta0 + round(10*runif(1))
+          aux2 <- runMCMC(x=temp[,2], y=Taste, startValue=aux, iterations=input$sLongitud)
+          aux2 <- data.frame(a=aux2[,1], b=aux2[,2], sd=aux2[,3])
+          chain <- cbind(chain, aux2)
+        }
+        return(chain)
+      }
+      
+    })
+    
+    output$cadenasMCMC <- DT::renderDataTable(DT::datatable({
+      if(is.null(df()))
+        return()
+      else 
+        return(df())
+    }))
+    
+    
+    output$hist_posteriori_A <- renderPlot({
+      if(is.null(df()))
+        return()
+      else{
+        return({AA = mean(df()[-(1:input$sBurnin),1])
+        hist(df()[,1], main=paste("Posterior A: ", AA))
+        abline(v=AA, col="red")
+        })
+      }
+    })
+    output$hist_posteriori_B <- renderPlot({
+      if(is.null(df()))
+        return()
+      else{
+        return({BB = mean(df()[-(1:input$sBurnin),2])
+        hist(df()[,2], main=paste("Posterior B: ", BB))
+        abline(v=BB, col="red")
+        })
+      }
+    })
+    output$hist_posteriori_Sd <- renderPlot({
+      if(is.null(df()))
+        return()
+      else{
+        return({Ssd = mean(df()[-(1:input$sBurnin),3])
+        hist(df()[,3], main=paste("Posterior A: ", Ssd))
+        abline(v=Ssd, col="red")
+        })
+      }
+    })
+    output$plot_posteriori_A <- renderPlot({
+      if(is.null(df()))
+        return()
+      else{
+        return({AA = mean(df()[-(1:input$sBurnin),1])
+        plot(df()[,1], type="l", main=paste("Posterior A: ", AA))
+        abline(h=AA, col="red")
+        })
+      }
+    })
+    output$plot_posteriori_B <- renderPlot({
+      if(is.null(df()))
+        return()
+      else{
+        return({BB = mean(df()[-(1:input$sBurnin),2])
+        plot(df()[,2], type="l", main=paste("Posterior B: ", BB))
+        abline(h=BB, col="red")
+        })
+      }
+    })
+    output$plot_posteriori_Sd <- renderPlot({
+      if(is.null(df()))
+        return()
+      else{
+        return({Ssd = mean(df()[-(1:input$sBurnin),3])
+        plot(df()[,3], type="l", main=paste("Posterior Sd: ", Ssd))
+        abline(h=Ssd, col="red")
+        })
+        
+      }
+    })
+    
+    ##############################################################################
+    output$regresionCalc <- renderPlot({
+      if(is.null(input$cVariables))
+        return()
+      else 
+        return({
+          plot(dataInput()[,2], dataInput()[,1])
+          lines(dataInput()[,2], dataInput()[,2]*mean(df()[,1]) + mean(df()[,2]), col="blue") 
+        })
+    })
+    
+    ##############################################################################
+    output$pConvergencia_A <- renderPlot({
+      if(is.null(df()))
+        return()
+      else{
+        par(mfrow=(c(1,1)))
+        return({plot(df()[,1], type = "l", main="Parametro A")
+          lines(df()[,4], col="red")
+          lines(df()[,7], col="blue")
+          lines(df()[,10], col="green")
+          lines(df()[,13], col="black")
+        })
+      }
+    })
+    output$pConvergencia_B <- renderPlot({
+      if(is.null(df()))
+        return()
+      else{
+        par(mfrow=(c(1,1)))
+        return({plot(df()[,2], type = "l", main="Parametro B")
+          lines(df()[,5], col="red")
+          lines(df()[,8], col="blue")
+          lines(df()[,11], col="green")
+          lines(df()[,14], col="black")
+        })
+      }
+    })
+    output$pConvergencia_Sd <- renderPlot({
+      if(is.null(df()))
+        return()
+      else{
+        par(mfrow=(c(1,1)))
+        return({plot(df()[,3], type = "l", main="Parametro Sd")
+          lines(df()[,6], col="red")
+          lines(df()[,9], col="blue")
+          lines(df()[,12], col="green")
+          lines(df()[,15], col="black")
+        })
+      }
+    })
+    
 })
 # funciones auxiliares
-LCG <- function(nsim, M = 2^32, a = 22695477, c = 1, seed = 110104){
+LCG <- function(nsim, M = 2^32, a = 22695477, c = 1, seed = 141216){
   X = c(seed, numeric(nsim-1)) # Aparta memoria
   for(i in 1:(nsim-1)) X[i+1] <- ((a*X[i] + c)%% M) # Aplica GenradorCongruenciaLineal
   return(X/M) # Aplica transformacion

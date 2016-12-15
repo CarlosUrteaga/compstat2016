@@ -173,28 +173,28 @@ dashboardPage(
                 tabPanel("Tarea 04",
                          sidebarLayout(
                            sidebarPanel(
-                             checkboxGroupInput("cVariables", h3("Variables"),
+                             checkboxGroupInput("cVariables4", h3("Variables"),
                                                 choices = names(data4)),
-                             h4("Parametros aPriori"),
-                             sliderInput("s_a", "a -> Unif ", min=1, max=10, value=c(5,8)),
-                             sliderInput("s_b", "b <- Norm", min=1, max=10, value=5),
-                             sliderInput("s_sigma", "sigma -> Unif", min=1, max=10, value=c(5, 6))
+                             
+                             sliderInput("s_a4", "a -> Unif ", min=1, max=10, value=c(5,8)),
+                             sliderInput("s_b4", "b <- Norm", min=1, max=10, value=5),
+                             sliderInput("s_sigma4", "sigma -> Unif", min=1, max=10, value=c(5, 6))
                            ),
                            
                            mainPanel(
                              tabsetPanel(type = "tabs", 
                                          tabPanel("datos",
                                                   fluidRow(
-                                                    column(8, plotOutput("plot_data")),
-                                                    column(12, DT::dataTableOutput("table"))
+                                                    column(8, plotOutput("plot_data4")),
+                                                    column(12, DT::dataTableOutput("table4"))
                                                   ) 
                                          ),
                                          tabPanel("distribuciones aPriori",
                                                   fluidRow(
-                                                    column(4, plotOutput("plot_hist_A")),
-                                                    column(4, plotOutput("plot_hist_B")),
-                                                    column(4, plotOutput("plot_hist_Sd")),
-                                                    column(4, plotOutput("plot_hist_Total"))
+                                                    column(4, plotOutput("plot_hist_A4")),
+                                                    column(4, plotOutput("plot_hist_B4")),
+                                                    column(4, plotOutput("plot_hist_Sd4")),
+                                                    column(4, plotOutput("plot_hist_Total4"))
                                                   )
                                          )
                              )
@@ -234,11 +234,58 @@ dashboardPage(
                          # )
                 ),
                 tabPanel("Tarea 05",
-                         box(
-                           withMathJax(),
-                           width = 15,
-                           includeMarkdown("md/hw05.md")
-                         )
+                         
+                         sidebarPanel(
+                           checkboxGroupInput("cVariables", h3("Variables"),
+                                              choices = names(data)),
+                           numericInput("nCadenas", "cadenas a simular", value=1, min=1, max=10, step=1),
+                           sliderInput("sLongitud", "longitud de cadenas", min=10000, max=1000000, value=1000),
+                           sliderInput("sBurnin", "Burnin", min=10, max=10000, value=5000),
+                           actionButton("button", "Calcula MCMC"),  #Calcula MCMC
+                           
+                           h4("Par??metros aPriori"),
+                           sliderInput("s_a", "a -> Unif ", min=1, max=10, value=c(5,8)),
+                           sliderInput("s_b", "b <- Norm", min=1, max=10, value=5),
+                           sliderInput("s_sigma", "sigma -> Unif", min=1, max=10, value=c(5, 6))
+                         ),
+                         
+                         mainPanel(
+                           tabsetPanel(type="tabs",
+                                       tabPanel("datos", 
+                                                fluidRow(
+                                                  column(8, plotOutput("plot_data")),
+                                                  column(12, DT::dataTableOutput("table"))
+                                                )
+                                       ),
+                                       tabPanel("distribuciones aPriori",
+                                                fluidRow(
+                                                  column(4, plotOutput("plot_hist_A")),
+                                                  column(4, plotOutput("plot_hist_B")),
+                                                  column(4, plotOutput("plot_hist_Sd")),
+                                                  column(4, plotOutput("plot_hist_Total"))
+                                                )
+                                       ),
+                                       tabPanel("Par??metros de la regresi??n",
+                                                fluidRow(
+                                                  column(4, plotOutput("hist_posteriori_A")),
+                                                  column(4, plotOutput("hist_posteriori_B")),
+                                                  column(4, plotOutput("hist_posteriori_Sd")),
+                                                  column(4, plotOutput("plot_posteriori_A")),
+                                                  column(4, plotOutput("plot_posteriori_B")),
+                                                  column(4, plotOutput("plot_posteriori_Sd"))
+                                                )
+                                       ),
+                                       tabPanel("Multiples cadenas",
+                                                fluidRow(
+                                                  column(4, verbatimTextOutput("summary")),
+                                                  column(4, plotOutput("regresionCalc")),
+                                                  column(12, DT::dataTableOutput("cadenasMCMC"))
+                                                )),
+                                       tabPanel("Convergencia de MCMC's", 
+                                                plotOutput("pConvergencia_A"),
+                                                plotOutput("pConvergencia_B"),
+                                                plotOutput("pConvergencia_Sd"))
+                           ))
                 ),
                 tabPanel("Tarea 06",
                          box(
