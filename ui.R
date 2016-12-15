@@ -28,8 +28,8 @@ dashboardPage(
       menuItem("Numeros aleatorios", tabName = "random", icon = icon("black-tie")),
       menuItem("Integracion via Monte Carlo", tabName = "montecarlo", icon = icon("magic")),
       menuItem("MCMC", tabName = "MCMC", icon = icon("line-chart")),
-      menuItem("Extras", tabName = "extras", icon = icon("gift"))
-      
+      menuItem("Extras", tabName = "extras", icon = icon("gift")),
+      textInput("seed", "Semilla:", "109152")
       #menuItem("About", tabName = "about", icon = icon("user"))
     )
   ),
@@ -360,11 +360,6 @@ dashboardPage(
       tabItem(tabName = "extras",
               h2("Extras"), 
               tabsetPanel(
-                tabPanel( "Metodo de la Funcion Inversa", icon = icon("asterisk"),
-                fluidRow(
-                  
-               
-               )),
                tabPanel( "Paradoja del cumpleanios",icon = icon("birthday-cake"),
                          h3("Cual es la probabilidad de que dos personas en una fiesta cumplan anios el mismo dia?"),
                          fluidRow(
@@ -372,10 +367,22 @@ dashboardPage(
                            # )
                          ),
                          
+                         
                          box(
-                           withMathJax(),
-                           width = 15,
-                           includeMarkdown("md/paradox02.md")
+                           title =  "# de Personas en la fiesta",
+                           width = 10,
+                           numericInput(inputId = "personascumpleanos",
+                                        label = "??Cuantas personas hay en la fiesta?",
+                                        value = 10
+                           ),
+                           verbatimTextOutput("probabilidad_cumpleanos")
+                         )),
+               
+               tabPanel( "Faltantes", icon = icon("asterisk"),
+                         fluidRow(
+                           
+                            box( "Faltantes", "Tarea 6, agregar liga pdf (tarea 3), agregar liga video"
+                            )
                          ))
                
         ))

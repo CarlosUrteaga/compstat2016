@@ -8,7 +8,7 @@
 #
 
 library(shiny)
-
+seed <- 109152
 data4 <- read.csv(file="cheese.csv", header=T)
 Taste <- data4$taste
 data5 <- data4[, !names(data4) %in% c("id","taste")]
@@ -18,6 +18,7 @@ n1 <- dim(data)[1]
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
   data <- reactive({
+    seed = input$seed
     lambda = input$lambda
     switch(input$radioBtn,
            #generador de congruencia lineal, distribuci??n uniforme
@@ -530,9 +531,21 @@ shinyServer(function(input, output) {
         })
       }
     })
+    
+  ## birthday 
+    output$probabilidad_cumpleanos <-renderText({
+      per = input$personascumpleanos
+      prob = 1
+      for (i in 1:per){
+        prob = prob*((365-i)/365)
+      }
+      y <- round(((1-prob)*100),3)
+      x <- paste("Si hay ", per, "personas en una fiesta, hay ", y,"% de probabilidades de que dos personas cumplanios el mismo dia")
+      x
+    })
 })
 # funciones auxiliares
-LCG <- function(nsim, M = 2^32, a = 22695477, c = 1, seed = 141216){
+LCG <- function(nsim, M = 2^32, a = 22695477, c = 1, seed = seed){
   X = c(seed, numeric(nsim-1)) # Aparta memoria
   for(i in 1:(nsim-1)) X[i+1] <- ((a*X[i] + c)%% M) # Aplica GenradorCongruenciaLineal
   return(X/M) # Aplica transformacion
